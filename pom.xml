@@ -25,7 +25,6 @@
 		<pivotal-cf-client-reactor.version>1.0.0.RELEASE</pivotal-cf-client-reactor.version>
 		<deployer.version>1.3.2.RELEASE</deployer.version>
 		<spring-cloud-deployer-cloud-foundry.version>1.4.0.BUILD-SNAPSHOT</spring-cloud-deployer-cloud-foundry.version>
-
 	</properties>
 
 	<dependencies>

@@ -68,6 +68,7 @@ import org.springframework.cloud.deployer.spi.cloudfoundry.CloudFoundry2630AndLa
 import org.springframework.cloud.deployer.spi.cloudfoundry.CloudFoundryConnectionProperties;
 import org.springframework.cloud.deployer.spi.core.AppDefinition;
 import org.springframework.cloud.scheduler.spi.core.ScheduleRequest;
+import org.springframework.cloud.scheduler.spi.core.SchedulerException;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 
@@ -170,6 +171,38 @@ public class CloudFoundryAppSchedulerTests {
 		assertThat(((TestJobs) this.client.jobs()).getCreateJobResponse().getCommand()).isEqualTo("TestArg");
 	}
 
+	@Test
+	public void testDelete() {
+		mockAppResultsInAppList();
+		mockSingleJobInJobList();
+
+		List<JobResource> result = this.client.jobs().list(null).block().getResources();
+		assertThat(result.size()).isEqualTo(2);
+
+		this.cloudFoundryAppScheduler.unschedule("test-job-name-1");
+		result = this.client.jobs().list(null).block().getResources();
+		assertThat(result.size()).isEqualTo(1);
+
+		assertThat(result.get(0).getName()).isEqualTo("test-job-name-2");
+		assertThat(result.get(0).getApplicationId()).isEqualTo("test-application-id-2");
+	}
+
+	@Test
+	public void testMissingScheduleDelete() {
+		boolean exceptionFired = false;
+		mockAppResultsInAppList();
+		mockSingleJobInJobList();
+		try {
+			this.cloudFoundryAppScheduler.unschedule("test-job-name-3");
+		}
+		catch (SchedulerException se) {
+			assertThat(se.getMessage()).isEqualTo("Failed to unschedule, schedule test-job-name-3 does not exist.");
+			exceptionFired = true;
+		}
+		assertThat(exceptionFired).isTrue();
+	}
+
+
 	@Test(expected = UnsupportedOperationException.class)
 	public void testList() {
 		this.cloudFoundryAppScheduler.list();
@@ -178,11 +211,6 @@ public class CloudFoundryAppSchedulerTests {
 	@Test(expected = UnsupportedOperationException.class)
 	public void testFilteredList() {
 		this.cloudFoundryAppScheduler.list("FOO");
-	}
-
-	@Test(expected = UnsupportedOperationException.class)
-	public void testUnschedule() {
-		this.cloudFoundryAppScheduler.unschedule("FOO");
 	}
 
 	private void givenRequestListApplications(Flux<ApplicationSummary> response) {
@@ -326,6 +354,20 @@ public class CloudFoundryAppSchedulerTests {
 						.requestedState("RUNNING")
 						.runningInstances(1)
 						.build()));
+	}
+
+	private void mockSingleJobInJobList() {
+		TestJobs localJobs = (TestJobs) client.jobs();
+		localJobs.jobResources.add(JobResource.builder().applicationId("test-application-id-1")
+				.command("test-command")
+				.id("test-job-1")
+				.name("test-job-name-1")
+				.build());
+		localJobs.jobResources.add(JobResource.builder().applicationId("test-application-id-2")
+				.command("test-command")
+				.id("test-job-2")
+				.name("test-job-name-2")
+				.build());
 	}
 
 	private void mockJobsInJobList() {
