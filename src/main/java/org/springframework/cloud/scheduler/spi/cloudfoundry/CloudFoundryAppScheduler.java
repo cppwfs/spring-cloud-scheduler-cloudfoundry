@@ -117,6 +117,16 @@ public class CloudFoundryAppScheduler implements Scheduler {
 		throw new UnsupportedOperationException("Interface is not implemented for list method.");
 	}
 
+	@Override
+	public org.springframework.data.domain.Page<ScheduleInfo> list(org.springframework.data.domain.Pageable pageable) {
+		throw new UnsupportedOperationException("Interface is not implemented for list method.");
+	}
+
+	@Override
+	public org.springframework.data.domain.Page<ScheduleInfo> list(org.springframework.data.domain.Pageable pageable, String taskDefinitionName) {
+		throw new UnsupportedOperationException("Interface is not implemented for list method.");
+	}
+
 	private void scheduleJob(String appName, String scheduleName, String expression, String command) {
 		logger.debug(String.format("Scheduling Task: ", appName));
 		getApplicationByAppName(appName)
