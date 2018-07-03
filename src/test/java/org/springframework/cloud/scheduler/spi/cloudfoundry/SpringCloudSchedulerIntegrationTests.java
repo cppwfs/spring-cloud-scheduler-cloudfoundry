@@ -20,8 +20,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import org.cloudfoundry.operations.CloudFoundryOperations;
+import org.cloudfoundry.operations.applications.DeleteApplicationRequest;
+import org.junit.After;
 import org.junit.ClassRule;
 import org.junit.runner.RunWith;
+import reactor.core.publisher.Mono;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -65,6 +69,10 @@ public class SpringCloudSchedulerIntegrationTests extends AbstractIntegrationTes
 		return this.scheduler;
 	}
 
+	@Autowired
+	private CloudFoundryOperations operations;
+
+
 
 	@Override
 	protected List<String> getCommandLineArgs() {
@@ -85,6 +93,28 @@ public class SpringCloudSchedulerIntegrationTests extends AbstractIntegrationTes
 	protected Map<String, String> getAppProperties() {
 		return null;
 	}
+
+	/**
+	 * Remove all pushed apps.  This in turn removes the associated schedules.
+	 */
+	@After
+	public void tearDown() {
+		operations.applications().list().flatMap(applicationSummary -> {
+			if(applicationSummary.getName().startsWith("testList") ||
+					applicationSummary.getName().startsWith("testDuplicateSchedule") ||
+					applicationSummary.getName().startsWith("testUnschedule") ||
+					applicationSummary.getName().startsWith("testMultiple") ||
+					applicationSummary.getName().startsWith("testSimpleSchedule")) {
+
+				return operations.applications().delete(DeleteApplicationRequest
+						.builder()
+						.name(applicationSummary.getName())
+						.build());
+			}
+			return Mono.justOrEmpty(applicationSummary);
+		}).blockLast();
+	}
+
 
 	/**
 	 * This triggers the use of {@link CloudFoundrySchedulerAutoConfiguration}.

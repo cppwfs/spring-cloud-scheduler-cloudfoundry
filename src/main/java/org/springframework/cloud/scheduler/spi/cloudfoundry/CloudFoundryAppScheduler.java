@@ -340,7 +340,7 @@ public class CloudFoundryAppScheduler implements Scheduler {
 			}
 		}
 		if(result == null) {
-			throw new UnScheduleException(String.format("task. %s does not exist.", jobName));
+			throw new UnScheduleException(String.format("schedule %s does not exist.", jobName));
 		}
 		return result.getId();
 	}
