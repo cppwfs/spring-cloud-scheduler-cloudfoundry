@@ -171,7 +171,7 @@ public class CloudFoundryAppScheduler implements Scheduler {
 						throw new CloudFoundryScheduleSSLException("Failed to schedule" + jobName, e);
 					}
 					else {
-						throw new CreateScheduleException("Failed to schedule: " + jobName, e);
+						throw new CreateScheduleException(jobName, e);
 					}
 				})
 				.block();
@@ -340,7 +340,7 @@ public class CloudFoundryAppScheduler implements Scheduler {
 			}
 		}
 		if(result == null) {
-			throw new UnScheduleException(String.format("task. %s, was not found", jobName));
+			throw new UnScheduleException(String.format("task. %s does not exist.", jobName));
 		}
 		return result.getId();
 	}
